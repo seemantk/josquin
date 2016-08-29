@@ -195,6 +195,12 @@
                 notesViewFocus.separate(separate || false);
               })
         ;
+        
+        // TODO remove this.
+        // This is a temporary measure to fix the Y scale domain of the focus view.
+        // See https://github.com/sul-cidr/josquin-ribbon/pull/38
+        notesViewFocus.separate(false);
+
     } // chartify()
 
     function renderNotesViewContext(data) {
