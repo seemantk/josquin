@@ -32,28 +32,6 @@ function NotesCanvas(){
             scale[p].y.range([height,0]);
           })
         ;
-        scale.data.x
-            .domain([
-                  d3.min(data.value, function(d) { return d.time; })
-                , d3.max(data.value, function(d) { return d.time + d.duration; })
-              ])
-            .range([0, width - 1]);
-        ;
-        scale.data.y
-            .domain([
-                  d3.min(data.value, function(d) { return d.pitch - 1; })
-                , d3.max(data.value, function(d) { return d.pitch; })
-              ])
-            .range([height, 0])
-        ;
-        scale.zoom.x
-            .domain(scale.data.x.domain())
-            .range(scale.data.x.range())
-        ;
-        scale.zoom.y
-            .domain(scale.data.y.domain())
-            .range(scale.data.y.range())
-        ;
         setHeights();
         var rects = svg.selectAll("rect").data(data.value);
         rects
