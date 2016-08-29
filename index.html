@@ -155,6 +155,7 @@
             .width(width)
             .height(height * 3)
             .tooltip(tip)
+            .showExtremeNotes(true)
             .connect(signal)
         ;
         colorLegend
@@ -169,7 +170,7 @@
         renderNotesViewContext(data.notes);
         renderNotesViewFocus(data);
 
-        var full = [[0, data.scorelength], [data.minpitch.b7, data.maxpitch.b7]];
+        var full = [[0, data.scorelength], [data.minpitch.b7 - 1, data.maxpitch.b7]];
         notesViewContext.zoom(full);
         notesViewFocus.zoom(full);
 
@@ -191,9 +192,15 @@
                 notesViewFocus.hilite(hilite);
               })
             .on("separate", function(separate) {
-               notesViewFocus.separate(separate || false);
+                notesViewFocus.separate(separate || false);
               })
         ;
+        
+        // TODO remove this.
+        // This is a temporary measure to fix the Y scale domain of the focus view.
+        // See https://github.com/sul-cidr/josquin-ribbon/pull/38
+        notesViewFocus.separate(false);
+
     } // chartify()
 
     function renderNotesViewContext(data) {
