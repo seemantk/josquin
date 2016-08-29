@@ -6,10 +6,6 @@ function NotesBook() {
     , width
     , height
     , perspectives = ["full", "zoom"]
-    , scale = {
-          full: { x: d3.scaleLinear(), y: d3.scaleLinear() }
-        , zoom: { x: d3.scaleLinear(), y: d3.scaleLinear() }
-      }
     , yScale = d3.scaleBand()
     , colorScale
     , dispatch
@@ -99,9 +95,6 @@ function NotesBook() {
       if(arguments.length === 0) return width;
 
       width = value;
-      perspectives.forEach(function(p) {
-          scale[p].x.range([0, width]);
-      });
 
       return my;
     } // my.width()
@@ -110,28 +103,12 @@ function NotesBook() {
       if(arguments.length === 0) return height;
 
       height = value;
-      perspectives.forEach(function(p) {
-          scale[p].y.range([height, 0]);
-      });
 
       yScale.rangeRound([height, 0]);
 
       return my;
     } // my.height()
   ;
-  my.full = function(value) {
-      if(!arguments.length) return scale.full;
-
-      if(value[0])
-          scale.full.x.domain(value[0]);
-      if(value[1])
-          scale.full.y.domain(value[1]);
-
-      canvases.forEach(function(c) {
-          c.canvas.zoom(value);
-      });
-      return my;
-    } // my.full()
   ;
   my.connect = function(value) {
       if(!arguments.length) return dispatch;
