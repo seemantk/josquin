@@ -5,7 +5,6 @@ function NotesCanvas(){
     var svg, data, name
       , width = 900
       , height = 500
-      , margin = { top: 10, bottom: 20, left: 10, right: 10 }
       , scale = {
             data: { x: d3.scaleLinear(), y: d3.scaleLinear() }
           , zoom: { x: d3.scaleLinear(), y: d3.scaleLinear() }
