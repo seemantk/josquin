@@ -170,7 +170,7 @@
         renderNotesViewContext(data.notes);
         renderNotesViewFocus(data);
 
-        var full = [[0, data.scorelength], [data.minpitch.b7, data.maxpitch.b7]];
+        var full = [[0, data.scorelength], [data.minpitch.b7 - 1, data.maxpitch.b7]];
         notesViewContext.zoom(full);
         notesViewFocus.zoom(full);
 
