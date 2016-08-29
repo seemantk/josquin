@@ -16,6 +16,7 @@ function NotesBook() {
     , tooltip
     , canvases = []
     , separate = false
+    , showExtremeNotes = false
   ;
 
   /*
@@ -31,7 +32,9 @@ function NotesBook() {
               var self = d3.select(this);
               canvases.push({
                     key: d.key
-                  , canvas: NotesCanvas().colorScale(colorScale)
+                  , canvas: NotesCanvas()
+                      .colorScale(colorScale)
+                      .showExtremeNotes(showExtremeNotes)
                   , selection: self
               });
               self
@@ -163,6 +166,21 @@ function NotesBook() {
 
       return my;
     } // my.separate()
+  ;
+
+  my.showExtremeNotes = function(value) {
+      if(!arguments.length)
+          return showExtremeNotes;
+      else {
+          showExtremeNotes = value;
+          canvases.forEach(function(c) {
+              c.canvas.showExtremeNotes(value);
+          });
+      }
+
+      return my;
+    } // my.showExtremeNotes()
+  ;
 
   // This is always the last thing returned
   return my;

@@ -17,6 +17,7 @@ function NotesCanvas(){
       , roundedCornerSize
       , dispatch
       , emphasize
+      , showExtremeNotes = false
     ;
     /*
     ** Main Function Object
@@ -96,7 +97,16 @@ function NotesCanvas(){
               })
             .attr("height", noteHeight)
             .attr("fill", function(d) { return colorScale(d.voice); })
-            .attr("stroke", function(d) { return colorScale(d.voice); })
+            .attr("stroke", function(d) {
+                if(showExtremeNotes){
+                    return "red";
+                } else {
+                    return colorScale(d.voice);
+                }
+              })
+            .attr("stroke-width", function(d) {
+                  return showExtremeNotes ? "3px" : "1px";
+              })
             .attr("rx", roundedCornerSize)
             .attr("ry", roundedCornerSize)
         ;
@@ -187,6 +197,15 @@ function NotesCanvas(){
 
         return my;
       } // my.hilite()
+    ;
+    my.showExtremeNotes = function(value) {
+        if(!arguments.length)
+            return showExtremeNotes;
+        else
+            showExtremeNotes = value;
+
+        return my;
+      } // my.showExtremeNotes()
     ;
 
     /*
