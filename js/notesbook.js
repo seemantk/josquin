@@ -5,6 +5,7 @@ function NotesBook() {
   var svg, data
     , width
     , height
+    , margin = { top: 20, right: 20, bottom: 20, left: 20 }
     , scale = { color: null, voice: d3.scaleBand(), barlines: d3.scaleLinear() }
     , domain = { x: [], y: [] } // Store the aggregate domains for all strips
     , dispatch
@@ -26,11 +27,17 @@ function NotesBook() {
   ** Main Function Object
   */
   function my(selection) {
-      svg = selection;
+      svg = selection
+        .append("g")
+          .attr("transform", "translate(" + margin.left +","+ margin.top + ")")
       data = svg.datum();
 
       domain.x = [0, data.scorelength[0]];
       domain.y = [data.minpitch.b7 - 1, data.maxpitch.b7];
+
+      height = height - margin.top - margin.bottom;
+      width = width - margin.left - margin.right;
+
       scale.barlines
           .domain(domain.x)
           .range([0, width])
@@ -156,6 +163,12 @@ function NotesBook() {
 
       return my;
     } // my.full()
+  ;
+  my.margin = function(value) {
+      if(!arguments.length) return margin;
+
+      return my;
+    } // my.margin()
   ;
   my.connect = function(value) {
       if(!arguments.length) return dispatch;
