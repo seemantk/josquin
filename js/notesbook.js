@@ -24,6 +24,7 @@ function NotesBook() {
           , extremes: false // hilite the maximum and minimum pitches
         }
     , barlinesAxis = d3.axisTop()
+    , barlineLabelMinDistance = 30 // The minimum distance between measure labels.
     , barlines
     , bars
     , measuresAxis = d3.axisBottom()
@@ -194,11 +195,20 @@ function NotesBook() {
   } // mensurationsRender()
 
   function barlinesRender(selection) {
+      var previousLabelX = -Infinity;
       selection
           .call(barlinesAxis)
         .selectAll(".tick")
           .each(function(d, i) {
-              d3.select(this).select("text").text(i + 1);
+              var label = d3.select(this).select("text")
+                , x = scale.barlines(d);
+
+              if(x - previousLabelX < barlineLabelMinDistance){
+                  label.text("");
+              } else {
+                  label.text(i + 1);
+                  previousLabelX = x;
+              }
             })
       ;
   } // barlinesRender()
