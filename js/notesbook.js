@@ -23,7 +23,7 @@ function NotesBook() {
           , zoom:     false // indicates an active brush
           , extremes: false // hilite the maximum and minimum pitches
         }
-    , barlinesAxis = d3.axisTop()
+    , barlinesAxis = d3.axisBottom()
     , barlineLabelMinDistance = 30 // The minimum distance between measure labels.
     , barlines
     , bars
@@ -78,7 +78,7 @@ function NotesBook() {
       barlines = svg
         .append("g")
           .attr("class", "barlines")
-          //.attr("transform", "translate(0," + height + ")")
+          .attr("transform", "translate(0," + height + ")")
           .call(barlinesRender)
       ;
       mensurationsAxis
