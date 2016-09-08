@@ -23,11 +23,10 @@ function NotesBook() {
           , zoom:     false // indicates an active brush
           , extremes: false // hilite the maximum and minimum pitches
         }
-    , barlinesAxis = d3.axisTop()
+    , barlinesAxis = d3.axisBottom()
+    , barlineLabelMinDistance = 20 // The minimum distance between measure labels.
     , barlines
     , bars
-    , measuresAxis = d3.axisBottom()
-    , measures
     , mensurationCodes = {
             "O": ""
           , "O|": ""
@@ -79,17 +78,8 @@ function NotesBook() {
       barlines = svg
         .append("g")
           .attr("class", "barlines")
-          .call(barlinesAxis)
-      ;
-      measuresAxis
-          .scale(scale.barlines)
-          .tickSize(0) // no ticklines only tick labels
-      ;
-      measures = svg
-        .append("g")
-          .attr("class", "measures")
           .attr("transform", "translate(0," + height + ")")
-          .call(measuresAxis)
+          .call(barlinesRender)
       ;
       mensurationsAxis
           .scale(scale.barlines)
@@ -174,8 +164,7 @@ function NotesBook() {
           .scale(scale.barlines)
           .tickValues(bars)
       ;
-      barlines.call(barlinesAxis);
-      measures.call(measuresAxis.scale(scale.barlines));
+      barlines.call(barlinesRender);
   } // update()
 
   function mensurationsRender(selection) {
@@ -193,6 +182,24 @@ function NotesBook() {
       ;
   } // mensurationsRender()
 
+  function barlinesRender(selection) {
+      var previousLabelX = -Infinity;
+      selection
+          .call(barlinesAxis)
+        .selectAll(".tick")
+          .each(function(d, i) {
+              var label = d3.select(this).select("text")
+                , x = scale.barlines(d);
+
+              if(x - previousLabelX < barlineLabelMinDistance){
+                  label.text("");
+              } else {
+                  label.text(i + 1);
+                  previousLabelX = x;
+              }
+            })
+      ;
+  } // barlinesRender()
 
   /*
   ** API (Getter/Setter) Functions
@@ -251,8 +258,8 @@ function NotesBook() {
       display.zoom.x = display.zoom.x || domain.x;
       display.zoom.y = display.zoom.y || domain.y;
       scale.barlines.domain(display.zoom.x);
-      barlines.call(barlinesAxis.scale(scale.barlines));
-      measures.call(measuresAxis.scale(scale.barlines));
+      barlinesAxis.scale(scale.barlines);
+      barlines.call(barlinesRender);
 
       if(display.separate && display.hilite)
           display.zoom.y = null;
