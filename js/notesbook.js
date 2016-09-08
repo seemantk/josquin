@@ -27,8 +27,6 @@ function NotesBook() {
     , barlineLabelMinDistance = 30 // The minimum distance between measure labels.
     , barlines
     , bars
-    , measuresAxis = d3.axisBottom()
-    , measures
     , mensurationCodes = {
             "O": ""
           , "O|": ""
@@ -80,17 +78,8 @@ function NotesBook() {
       barlines = svg
         .append("g")
           .attr("class", "barlines")
+          //.attr("transform", "translate(0," + height + ")")
           .call(barlinesRender)
-      ;
-      measuresAxis
-          .scale(scale.barlines)
-          .tickSize(0) // no ticklines only tick labels
-      ;
-      measures = svg
-        .append("g")
-          .attr("class", "measures")
-          .attr("transform", "translate(0," + height + ")")
-          .call(measuresAxis)
       ;
       mensurationsAxis
           .scale(scale.barlines)
@@ -176,7 +165,6 @@ function NotesBook() {
           .tickValues(bars)
       ;
       barlines.call(barlinesRender);
-      measures.call(measuresAxis.scale(scale.barlines));
   } // update()
 
   function mensurationsRender(selection) {
@@ -272,7 +260,6 @@ function NotesBook() {
       scale.barlines.domain(display.zoom.x);
       barlinesAxis.scale(scale.barlines);
       barlines.call(barlinesRender);
-      measures.call(measuresAxis.scale(scale.barlines));
 
       if(display.separate && display.hilite)
           display.zoom.y = null;
