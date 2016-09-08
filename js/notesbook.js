@@ -24,7 +24,7 @@ function NotesBook() {
           , extremes: false // hilite the maximum and minimum pitches
         }
     , barlinesAxis = d3.axisBottom()
-    , barlineLabelMinDistance = 30 // The minimum distance between measure labels.
+    , barlineLabelMinDistance = 20 // The minimum distance between measure labels.
     , barlines
     , bars
     , mensurationCodes = {
