@@ -79,7 +79,7 @@ function NotesBook() {
       barlines = svg
         .append("g")
           .attr("class", "barlines")
-          .call(barlinesAxis)
+          .call(barlinesRender)
       ;
       measuresAxis
           .scale(scale.barlines)
@@ -174,7 +174,7 @@ function NotesBook() {
           .scale(scale.barlines)
           .tickValues(bars)
       ;
-      barlines.call(barlinesAxis);
+      barlines.call(barlinesRender);
       measures.call(measuresAxis.scale(scale.barlines));
   } // update()
 
@@ -193,6 +193,15 @@ function NotesBook() {
       ;
   } // mensurationsRender()
 
+  function barlinesRender(selection) {
+      selection
+          .call(barlinesAxis)
+        .selectAll(".tick")
+          .each(function(d, i) {
+              d3.select(this).select("text").text(i + 1);
+            })
+      ;
+  } // barlinesRender()
 
   /*
   ** API (Getter/Setter) Functions
@@ -251,7 +260,8 @@ function NotesBook() {
       display.zoom.x = display.zoom.x || domain.x;
       display.zoom.y = display.zoom.y || domain.y;
       scale.barlines.domain(display.zoom.x);
-      barlines.call(barlinesAxis.scale(scale.barlines));
+      barlinesAxis.scale(scale.barlines);
+      barlines.call(barlinesRender);
       measures.call(measuresAxis.scale(scale.barlines));
 
       if(display.separate && display.hilite)
