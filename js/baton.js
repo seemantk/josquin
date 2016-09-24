@@ -35,11 +35,11 @@ function parseJSON(proll) {
         voice = proll.partnames[part.partindex];
         part.notedata.forEach(function(note) {
             notes.push({
-                  pitch: note.pitch.b7
-                , note: note.pitch.name
-                , time: note.starttime[0]
-                , duration: note.duration[0]
-                , voice: voice
+                pitch: note.pitch.b7
+              , note: note.pitch.name
+              , time: note.starttime[0]
+              , duration: note.duration[0]
+              , voice: voice
             });
         });
     });
@@ -99,11 +99,10 @@ function chartify(data) {
     colorLegend();
 
     var full = {
-          x: [0, data.scorelength[0]]
-        , y: d3.range(data.minpitch.b7, data.maxpitch.b7)
-      }
+              x: [0, data.scorelength[0]]
+            , y: d3.range(data.minpitch.b7, data.maxpitch.b7)
+          }
     ;
-//    notesNav.full(full);
     notesBook.full(full);
 
     // Lifesize of this piece
@@ -112,8 +111,7 @@ function chartify(data) {
         .domain([0, data.scorelength[0]])
     ;
     // Domain window corresponding to the size of the canvas
-    var nbwidth = lifeScale.invert(notesBook.width());
-    notesNav.extent([0, nbwidth])
+    notesNav.extent([0, lifeScale.invert(notesBook.width())]);
 
     signal
         .on("zoom",     notesBook.zoom)
