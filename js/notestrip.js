@@ -56,6 +56,7 @@ function NoteStrip() {
               rx = x(d.time);
               ry = y(d.pitch);
               rw = noteWidth * d.duration;
+              //  From: http://jsfiddle.net/robhawkes/ghcjt/
               ctx.strokeRect(
                   rx + (cornerRadius/2), ry + (cornerRadius/2)
                 , rw - cornerRadius, noteHeight - cornerRadius
@@ -82,7 +83,8 @@ function NoteStrip() {
       voices.forEach(function(voice) {
           context.drawImage(
               canvases[voice]
-            ,
+            , extent[0]
+            , extent[1]
           );
         })
       ;
@@ -123,7 +125,7 @@ function NoteStrip() {
       ;
       render(target, voices, extent);
       return my;
-    } // my.rendeVoice()
+    } // my.render()
   ;
   // This is always the last thing returned
   return my;
