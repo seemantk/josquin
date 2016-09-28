@@ -5,7 +5,7 @@ var width = 960
   , notesNav = NotesNav()
       .container(d3.select("#nav"))
   , notesBook = NotesBook()
-      .svg(d3.select("#notes").append("svg"))
+      .container(d3.select("#notes"))
   , combineSeparateUI = CombineSeparateUI()
       .div(d3.select("#combine-separate-ui"))
   , extremeNotesUI = ExtremeNotesUI()
@@ -65,20 +65,21 @@ function chartify(data) {
     extremeNotesUI.connect(signal);
 
     colorScale.domain(data.partnames);
-    noteStrip.colorScale(colorScale).data(data);
-
-    notesNav
-        .margin(margin)
+    noteStrip
         .data(data)
+        .colorScale(colorScale)
+    ;
+    notesNav
+        .data(data)
+        .margin(margin)
+        .artist(noteStrip)
         .connect(signal)
     ;
     notesBook
-        .colorScale(colorScale)
-        .margin(margin)
-        .height(height * 3)
-        .width(width)
-        .extremes(true)
         .data(data)
+        .margin(margin)
+        .artist(noteStrip)
+        .extremes(true)
         .connect(signal)
     ;
     colorLegend
@@ -91,7 +92,7 @@ function chartify(data) {
 
     // Render views.
     noteStrip();
-    notesNav.artist(noteStrip)();
+    notesNav();
     notesBook();
     combineSeparateUI();
     extremeNotesUI();
@@ -117,6 +118,12 @@ function chartify(data) {
         .on("hilite",   notesBook.hilite)
         .on("separate", notesBook.separate)
         .on("extremes", notesBook.extremes)
+    ;
+    d3.select(window)
+        .on("resize", function() {
+            notesNav.resize();
+            notesBook.resize();
+          })
     ;
 } // chartify()
 
