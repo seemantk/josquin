@@ -6,19 +6,20 @@ function NoteStrip() {
     , data
     , width
     , height
+    , margin = { top: 20, right: 20, bottom: 20, left: 20 }
     , x = d3.scaleLinear()
     , y = d3.scaleBand()
     , colorScale
-    , noteWidth = 10
-    , noteHeight = 10
-    , cornerRadius = 5
+    , noteWidth = 30
+    , noteHeight = 30
+    , cornerRadius = 1
     , target // default target on screen on which to copy
   ;
   /*
   ** Main Function Object
   */
   function my() {
-      width = noteWidth * data.scorelength[0];
+      width = (noteWidth * data.scorelength[0]) - margin.top - margin.bottom;
       height = noteHeight * (data.maxpitch.b7 - data.minpitch.b7);
       x
           .domain([0, data.scorelength[0]])
@@ -52,18 +53,30 @@ function NoteStrip() {
       ;
       ctx.clearRect(0, 0, width, height);
       ctx.fillStyle = rgba(color, 0.4);
-      ctx.strokeStyle = rgba(color, 1);
+      ctx.strokeStyle = rgba(color, 0.8);
       ctx.lineJoin = "round";
       ctx.lineWidth = cornerRadius;
       voice.notedata.forEach(function(d) {
-          var rx = x(d.starttime[0]) + cornerRadius/2
-            , ry = y(d.pitch.b7) + cornerRadius/2
-            , rw = noteWidth * d.duration[0] - cornerRadius
-            , rh = noteHeight - cornerRadius
+          var rx = x(d.starttime[0])// + cornerRadius/2
+            , ry = y(d.pitch.b7)// + cornerRadius/2
+            , rw = noteWidth * d.duration[0]// - cornerRadius
+            , rh = noteHeight// - cornerRadius
+            , fw = rx + rw
+            , fh = ry + rh
           ;
-          //  From: http://jsfiddle.net/robhawkes/ghcjt/
-          ctx.fillRect(rx, ry, rw, rh);
-          ctx.strokeRect(rx, ry, rw, rh);
+          // ctx.beginPath();
+          // ctx.moveTo(rx, ry + cornerRadius);
+          // ctx.lineTo(rx, fh - cornerRadius);
+          // ctx.arcTo(rx, fh, rx + cornerRadius, fh, cornerRadius);
+          // ctx.lineTo(fw - cornerRadius, fh);
+          // ctx.arcTo(fw, fh, fw, fh - cornerRadius, cornerRadius);
+          // ctx.lineTo(fw, ry + cornerRadius);
+          // ctx.arcTo(fw, ry, fw - cornerRadius, ry, cornerRadius);
+          // ctx.lineTo(rx + cornerRadius, ry);
+          // ctx.arcTo(rx, ry, rx, ry + cornerRadius, cornerRadius);
+          ctx.rect(rx, ry, rw, rh);
+          ctx.fill();
+          ctx.stroke();
         })
       ;
   } // draw()
@@ -72,7 +85,7 @@ function NoteStrip() {
       var rgb = d3.rgb(color);
       return 'rgba('
         + rgb.r + ',' + rgb.g + ',' + rgb.b + ','
-        + (opacity ? '0.5' : '0.9')
+        + opacity
         +')'
       ;
   } // rgba()
@@ -101,10 +114,6 @@ function NoteStrip() {
       return my;
     } // my.data()
   ;
-
-  /*
-  ** API: Getter/Setter Functions
-  */
   my.colorScale = function (value){
       if(!arguments.length) return colorScale;
       colorScale = value;
@@ -123,6 +132,7 @@ function NoteStrip() {
       return my;
     } // my.render()
   ;
+
   // This is always the last thing returned
   return my;
 } // NoteStrip()
