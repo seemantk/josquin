@@ -51,19 +51,19 @@ function NoteStrip() {
         , color = colorScale(data.partnames[voice.partindex])
       ;
       ctx.clearRect(0, 0, width, height);
-      ctx.fillStyle = rgba(color, 1/2);
+      ctx.fillStyle = rgba(color, 0.4);
       ctx.strokeStyle = rgba(color, 1);
       ctx.lineJoin = "round";
       ctx.lineWidth = cornerRadius;
       voice.notedata.forEach(function(d) {
-          var rx = x(d.starttime[0])// + cornerRadius/2
-            , ry = y(d.pitch.b7)// + cornerRadius/2
-            , rw = noteWidth * d.duration[0]// - cornerRadius
-            , rh = noteHeight// - cornerRadius
+          var rx = x(d.starttime[0]) + cornerRadius/2
+            , ry = y(d.pitch.b7) + cornerRadius/2
+            , rw = noteWidth * d.duration[0] - cornerRadius
+            , rh = noteHeight - cornerRadius
           ;
           //  From: http://jsfiddle.net/robhawkes/ghcjt/
           ctx.fillRect(rx, ry, rw, rh);
-//          ctx.strokeRect(rx, ry, rw, rh);
+          ctx.strokeRect(rx, ry, rw, rh);
         })
       ;
   } // draw()
