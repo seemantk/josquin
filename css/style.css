@@ -23,6 +23,14 @@ header {
     height: 25vh;
     width: 100%;
 }
+#notes > canvas {
+    position: relative;
+}
+#notes > svg {
+    position: absolute;
+    top: 0;
+    left: 0;
+}
 #nav > canvas {
     position: relative;
 }
