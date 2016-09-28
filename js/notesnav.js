@@ -9,7 +9,7 @@ function NotesNav() {
       , margin = { top: 20, right: 20, bottom: 20, left: 20 }
       , x, y
       , artist
-      , canvas
+      , canvas, svg
       , brush =  {
               selection: null
             , widget: d3.brushX()
@@ -24,24 +24,22 @@ function NotesNav() {
     ** Main function Object
     */
     function my() {
-        size(); // set the height and width
         canvas = container.selectAll("canvas")
             .data([1], function(d) { return d; })
           .enter().append("canvas")
-            .attr("width", width)
-            .attr("height", height)
-          .node()
         ;
-        console.log(canvas)
-        artist.canvas(canvas).render();
 
-        var svg = container.selectAll("svg")
+        svg = container.selectAll("svg")
             .data([1], function(d) { return d; })
           .enter().append("svg")
-            .attr("width", width)
-            .attr("height", height)
         ;
         var g = svg.merge(svg).append("g");
+
+        size(); // set the height and width
+
+        width  = width - margin.left - margin.right;
+        height = height - margin.top - margin.bottom;
+
         g.attr("transform", "translate("+ margin.left +","+ margin.top +")");
 
         g.selectAll("g")
@@ -49,20 +47,10 @@ function NotesNav() {
           .enter().append("g")
             .attr("class", function(d) { return d; })
         ;
-        width  = width - margin.left - margin.right;
-        height = height - margin.top - margin.bottom;
-
-        brush.widget.extent([[0, 0], [width, height]]);
-
         brush.selection = g.select(".brush")
             .call(brush.widget)
         ;
-        // brush.selection.call(brush.widget.move, canvas.widget.x().range())
-        // ;
-        brush.selection.selectAll("rect")
-            .attr("y", 0)
-            .attr("height", height)
-        ;
+        update();
     } // my() - Main Function Object
 
     /*
@@ -92,12 +80,26 @@ function NotesNav() {
     } // brushed()
 
     function size() {
-      width = parseInt(container.style("width"));
-      height = parseInt(container.style("height"));
+        width = parseInt(container.style("width"));
+        height = parseInt(container.style("height"));
+        canvas
+            .attr("width", width)
+            .attr("height", height)
+        ;
+        svg
+            .attr("width", width)
+            .attr("height", height)
+        ;
+        brush.widget.extent([[0, 0], [width, height]]);
     } // size()
 
     function update() {
-        console.log(arguments.length);
+        artist.canvas(canvas.node()).render();
+        brush.selection.selectAll("rect")
+            .attr("y", 0)
+            .attr("height", height)
+        ;
+        brush.selection.call(brush.widget);
     } // update()
 
     function move() {
@@ -172,7 +174,12 @@ function NotesNav() {
         return my;
       } // my.artist()
     ;
-
+    my.resize = function (){
+        size();
+        update();
+        return my;
+      } // my.resize()
+    ;
     // This is ALWAYS the last thing returned
     return my;
 } // NotesNav()
