@@ -1,8 +1,9 @@
 var width = 960
   , height = 150 // height of one strip of notes
   , margin = { top: 20, right: 20, bottom: 20, left: 20 }
+  , noteStrip = NoteStrip()
   , notesNav = NotesNav()
-      .svg(d3.select("#nav").append("svg"))
+      .container(d3.select("#nav"))
   , notesBook = NotesBook()
       .svg(d3.select("#notes").append("svg"))
   , combineSeparateUI = CombineSeparateUI()
@@ -63,14 +64,11 @@ function chartify(data) {
     combineSeparateUI.connect(signal);
     extremeNotesUI.connect(signal);
 
-    colorScale
-        .domain(data.partnames)
-    ;
+    colorScale.domain(data.partnames);
+    noteStrip.colorScale(colorScale).data(data);
+
     notesNav
-        .colorScale(colorScale)
         .margin(margin)
-        .width(width)
-        .height(height)
         .data(data)
         .connect(signal)
     ;
@@ -92,7 +90,8 @@ function chartify(data) {
     ;
 
     // Render views.
-    notesNav();
+    noteStrip();
+    notesNav.artist(noteStrip)();
     notesBook();
     combineSeparateUI();
     extremeNotesUI();
