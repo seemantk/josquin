@@ -2,13 +2,13 @@ function NoteStrip() {
   /*
   ** Private Variables
   */
-  var canvases = {}
+  var canvases = d3.map()
     , data
     , width
     , height
     , x = d3.scaleLinear()
     , y = d3.scaleBand()
-    , colors
+    , colorScale
     , noteWidth = 10
     , noteHeight = 10
     , cornerRadius = 5
@@ -18,54 +18,52 @@ function NoteStrip() {
   ** Main Function Object
   */
   function my() {
+      width = noteWidth * data.scorelength[0];
+      height = noteHeight * (data.maxpitch.b7 - data.minpitch.b7);
       x
           .domain([0, data.scorelength[0]])
-          .range([0, noteWidth * scorelength[0]])
+          .range([0, width])
       ;
       y
-          .domain(d3.range([data.minpitch.b7, data.maxpitch.b7]))
-          .rangeRound([0, noteHeight * (data.maxpitch.b7 - data.minpitch.b7)])
+          .domain(d3.range(data.minpitch.b7, data.maxpitch.b7 + 1))
+          .rangeRound([height, 0])
       ;
-      width = x.range()[1];
-      height = y.range()[1];
 
-      if(!d3.keys(canvases).length) {
-          data.partnames.forEach(function(voice) {
-              var cnv = document.createElement("canvas");
-              cnv.width = width;
-              cnv.height = height;
-              var ctx = cnv.getContext('2d', { preserveDrawingBuffer: true });
-              canvases[voice] = ctx;
-            })
-          ;
-      }
+      d3.selectAll("canvas")
+          .data(data.partdata, function(d) { return d.partindex; })
+        .enter().each(function(d) {
+            var cnv = d3.select(document.createElement("canvas"))
+                .attr("width", width)
+                .attr("height", height)
+              .node()
+            ;
+            draw(cnv, d);
+            canvases.set(data.partnames[d.partindex], cnv);
+        })
+      ;
   } // Main Function Object
 
   /*
   ** Helper Functions
   */
-  function draw() {
-      context.forEach(function(ctx, index) {
-          var color = colorScale(data.partnames[index]);
-          ctx.clearRect(0, 0, width, height);
-          ctx.fillStyle = rgba(color, 0.5);
-          ctx.strokeStyle = rgba(color, 1)
-          ctx.lineJoin = "round";
-          ctx.lineWidth = cornerRadius;
-          data.partdata[index].forEach(function(d) {
-              rx = x(d.time);
-              ry = y(d.pitch);
-              rw = noteWidth * d.duration;
-              //  From: http://jsfiddle.net/robhawkes/ghcjt/
-              ctx.strokeRect(
-                  rx + (cornerRadius/2), ry + (cornerRadius/2)
-                , rw - cornerRadius, noteHeight - cornerRadius
-              );
-              ctx.fillRect(
-                  rx + (cornerRadius/2), ry + (cornerRadius/2)
-                , rw - cornerRadius, noteHeight - cornerRadius
-              );
-          })
+  function draw(cnv, voice) {
+      var ctx = cnv.getContext('2d', { preserveDrawingBuffer: true })
+        , color = colorScale(data.partnames[voice.partindex])
+      ;
+      ctx.clearRect(0, 0, width, height);
+      ctx.fillStyle = rgba(color, 1/2);
+      ctx.strokeStyle = rgba(color, 1);
+      ctx.lineJoin = "round";
+      ctx.lineWidth = cornerRadius;
+      voice.notedata.forEach(function(d) {
+          var rx = x(d.starttime[0])// + cornerRadius/2
+            , ry = y(d.pitch.b7)// + cornerRadius/2
+            , rw = noteWidth * d.duration[0]// - cornerRadius
+            , rh = noteHeight// - cornerRadius
+          ;
+          //  From: http://jsfiddle.net/robhawkes/ghcjt/
+          ctx.fillRect(rx, ry, rw, rh);
+//          ctx.strokeRect(rx, ry, rw, rh);
         })
       ;
   } // draw()
@@ -79,13 +77,17 @@ function NoteStrip() {
       ;
   } // rgba()
 
-  function render(context, voices, extent) {
-      voices.forEach(function(voice) {
-          context.drawImage(
-              canvases[voice]
-            , extent[0]
-            , extent[1]
-          );
+  function render(voices) {
+      voices.forEach(function(v) {
+          var ctx = target.getContext('2d', { preserveDrawingBuffer: true });
+          ctx.drawImage(
+              canvases.get(v)
+              , 0, 0, width, height
+              , margin.left, margin.top
+              , target.width - margin.left - margin.right
+              , target.height - margin.top - margin.bottom
+            )
+          ;
         })
       ;
   } // render()
@@ -103,27 +105,21 @@ function NoteStrip() {
   /*
   ** API: Getter/Setter Functions
   */
-  my.colors = function (value){
-      if(!arguments.length) return colors;
-      colors = value;
+  my.colorScale = function (value){
+      if(!arguments.length) return colorScale;
+      colorScale = value;
       return my;
     } // my.colorScale()
   ;
-  my.target = function (value){
-      if(!arguments.length) return target;
+  my.canvas = function (value){ // name makes more sense for public part
+      if(!arguments.length) return target; // name makes more sense for pvt
       target = value;
       return my;
-    } // my.target()
+    } // my.canvas()
   ;
-  my.render() {
-      var target = arguments[0] || target
-        , opt = arguments[1] || {}
-        , voices = opt.voices || data.partnames
-        , extent = opt.extent || {}
-        , extent.x = opt.extent.x || x.domain()
-        , extent.y = opt.extent.y || y.domain()
-      ;
-      render(target, voices, extent);
+  my.render = function (){
+      var opt = arguments[0] || {};
+      render(opt.voices || data.partnames);
       return my;
     } // my.render()
   ;
