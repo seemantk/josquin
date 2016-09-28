@@ -2,15 +2,14 @@ function NotesNav() {
     /*
     ** Private Variables - only used inside this object
     */
-    var svg
+    var container
       , data
       , width
       , height
       , margin = { top: 20, right: 20, bottom: 20, left: 20 }
-      , canvas = {
-              selection: null
-            , widget: NotesCanvas()
-          }
+      , x, y
+      , artist
+      , canvas
       , brush =  {
               selection: null
             , widget: d3.brushX()
@@ -25,38 +24,41 @@ function NotesNav() {
     ** Main function Object
     */
     function my() {
-
-        svg
-          .attr("width", width)
-          .attr("height", height)
+        size(); // set the height and width
+        canvas = container.selectAll("canvas")
+            .data([1], function(d) { return d; })
+          .enter().append("canvas")
+            .attr("width", width)
+            .attr("height", height)
+          .node()
         ;
+        console.log(canvas)
+        artist.canvas(canvas).render();
 
-        var g = svg.selectAll("g").data([1]);
-        g = g.enter().append("g").merge(g);
-        g.attr("transform", "translate("+ margin.left +","+ margin.top +")")
+        var svg = container.selectAll("svg")
+            .data([1], function(d) { return d; })
+          .enter().append("svg")
+            .attr("width", width)
+            .attr("height", height)
+        ;
+        var g = svg.merge(svg).append("g");
+        g.attr("transform", "translate("+ margin.left +","+ margin.top +")");
 
         g.selectAll("g")
-            .data(["canvas", "brush"])
+            .data(["brush"])
           .enter().append("g")
             .attr("class", function(d) { return d; })
         ;
         width  = width - margin.left - margin.right;
         height = height - margin.top - margin.bottom;
 
-        canvas.widget
-            .width(width)
-            .height(height)
-        ;
         brush.widget.extent([[0, 0], [width, height]]);
 
-        canvas.selection = g.select(".canvas")
-            .datum({ key: "full", value: d3.merge(data.notes.values()) })
-            .call(canvas.widget)
-        ;
         brush.selection = g.select(".brush")
             .call(brush.widget)
-            brush.selection.call(brush.widget.move, canvas.widget.x().range())
         ;
+        // brush.selection.call(brush.widget.move, canvas.widget.x().range())
+        // ;
         brush.selection.selectAll("rect")
             .attr("y", 0)
             .attr("height", height)
@@ -69,6 +71,8 @@ function NotesNav() {
     function brushend() { return brushed(true); }
 
     function brushed(ended) {
+      return; // TODO
+
         var extent = d3.event && d3.event.selection
             ? d3.event.selection.map(Math.round).map(canvas.widget.x().invert)
 
@@ -87,8 +91,10 @@ function NotesNav() {
         );
     } // brushed()
 
-    function extent() {
-    } // extent()
+    function size() {
+      width = parseInt(container.style("width"));
+      height = parseInt(container.style("height"));
+    } // size()
 
     function update() {
         console.log(arguments.length);
@@ -106,37 +112,20 @@ function NotesNav() {
     /*
     ** API - Getters/Setters
     */
-    my.height = function(value) {
-        if(!arguments.length) return height;
-
-        height = value;
-
-        return my;
+    my.height = function() {
+        return height;
       } // my.height()
     ;
-    my.width = function (value) {
-        if(arguments.length === 0) return width;
-
-        width = value;
-
-        return my;
+    my.width = function () {
+        return width;
       } // my.width()
     ;
     my.margin = function (value) {
         if(!arguments.length) return margin;
 
         margin = value;
-
         return my;
       } // my.margin()
-    ;
-    my.colorScale = function (value) {
-        if(arguments.length === 0) return canvas.widget.colorScale();
-
-        canvas.widget.colorScale(value);
-
-        return my;
-      } // my.colorScale()
     ;
     my.connect = function(value) {
         if(!arguments.length) return dispatch;
@@ -150,12 +139,12 @@ function NotesNav() {
 
         scale = value;
         canvas.widget.zoom(scale).snap();
-
         return my;
       } // my.full()
     ;
     my.extent = function(value) {
         if(!value) return;
+        return; // TODO
         var t = d3.transition()
           , extent = value.map(canvas.widget.x())
         ;
@@ -165,17 +154,23 @@ function NotesNav() {
         ;
       } // my.extent()
     ;
-    my.svg = function (value){
-        if(arguments.length === 0) return svg;
-        svg = value;
+    my.container = function (value){
+        if(arguments.length === 0) return container;
+        container = value;
         return my;
-      } // my.svg()
+      } // my.container()
     ;
     my.data = function (value){
         if(arguments.length === 0) return data;
         data = value;
         return my;
       } // my.data()
+    ;
+    my.artist = function (value){
+        if(!arguments.length) return artist;
+        artist = value;
+        return my;
+      } // my.artist()
     ;
 
     // This is ALWAYS the last thing returned
