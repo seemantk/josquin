@@ -1,10 +1,11 @@
 var width = 960
   , height = 150 // height of one strip of notes
   , margin = { top: 20, right: 20, bottom: 20, left: 20 }
+  , noteStrip = NoteStrip()
   , notesNav = NotesNav()
-      .svg(d3.select("#nav").append("svg"))
+      .container(d3.select("#nav"))
   , notesBook = NotesBook()
-      .svg(d3.select("#notes").append("svg"))
+      .container(d3.select("#notes"))
   , combineSeparateUI = CombineSeparateUI()
       .div(d3.select("#combine-separate-ui"))
   , extremeNotesUI = ExtremeNotesUI()
@@ -35,11 +36,11 @@ function parseJSON(proll) {
         voice = proll.partnames[part.partindex];
         part.notedata.forEach(function(note) {
             notes.push({
-                  pitch: note.pitch.b7
-                , note: note.pitch.name
-                , time: note.starttime[0]
-                , duration: note.duration[0]
-                , voice: voice
+                pitch: note.pitch.b7
+              , note: note.pitch.name
+              , time: note.starttime[0]
+              , duration: note.duration[0]
+              , voice: voice
             });
         });
     });
@@ -63,24 +64,22 @@ function chartify(data) {
     combineSeparateUI.connect(signal);
     extremeNotesUI.connect(signal);
 
-    colorScale
-        .domain(data.partnames)
+    colorScale.domain(data.partnames);
+    noteStrip
+        .data(data)
+        .colorScale(colorScale)
     ;
     notesNav
-        .colorScale(colorScale)
-        .margin(margin)
-        .width(width)
-        .height(height)
         .data(data)
+        .margin(margin)
+        .artist(noteStrip)
         .connect(signal)
     ;
     notesBook
-        .colorScale(colorScale)
-        .margin(margin)
-        .height(height * 3)
-        .width(width)
-        .extremes(true)
         .data(data)
+        .margin(margin)
+        .artist(noteStrip)
+        .extremes(true)
         .connect(signal)
     ;
     colorLegend
@@ -92,6 +91,7 @@ function chartify(data) {
     ;
 
     // Render views.
+    noteStrip();
     notesNav();
     notesBook();
     combineSeparateUI();
@@ -99,11 +99,10 @@ function chartify(data) {
     colorLegend();
 
     var full = {
-          x: [0, data.scorelength[0]]
-        , y: d3.range(data.minpitch.b7, data.maxpitch.b7)
-      }
+              x: [0, data.scorelength[0]]
+            , y: d3.range(data.minpitch.b7, data.maxpitch.b7)
+          }
     ;
-//    notesNav.full(full);
     notesBook.full(full);
 
     // Lifesize of this piece
@@ -112,14 +111,19 @@ function chartify(data) {
         .domain([0, data.scorelength[0]])
     ;
     // Domain window corresponding to the size of the canvas
-    var nbwidth = lifeScale.invert(notesBook.width());
-    notesNav.extent([0, nbwidth])
+    notesNav.extent([0, lifeScale.invert(notesBook.width())]);
 
     signal
         .on("zoom",     notesBook.zoom)
         .on("hilite",   notesBook.hilite)
         .on("separate", notesBook.separate)
         .on("extremes", notesBook.extremes)
+    ;
+    d3.select(window)
+        .on("resize", function() {
+            notesNav.resize();
+            notesBook.resize();
+          })
     ;
 } // chartify()
 

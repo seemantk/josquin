@@ -15,6 +15,30 @@ header {
     font-family: 'BravuraText';
     font-size: xx-large;
 }
+#notes {
+    height: 75vh;
+    width: 100%;
+}
+#nav {
+    height: 25vh;
+    width: 100%;
+}
+#notes > canvas {
+    position: relative;
+}
+#notes > svg {
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+#nav > canvas {
+    position: relative;
+}
+#nav > svg {
+    position: absolute;
+    top: 0;
+    left: 0;
+}
 #legend li {
     cursor: pointer;
 }

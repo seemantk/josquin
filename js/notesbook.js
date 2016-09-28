@@ -2,14 +2,13 @@ function NotesBook() {
   /*
   ** Private Variables
   */
-  var svg
+  var container, svg, canvas, artist
     , data
     , width
     , height
     , margin = { top: 20, right: 20, bottom: 20, left: 20 }
     , scale = {
-            color: null
-          , voice: d3.scaleBand()
+          voice: d3.scaleBand()
           , barlines: d3.scaleLinear()
         }
     , domain = { x: [], y: [] } // Store the aggregate domains for all strips
@@ -48,19 +47,17 @@ function NotesBook() {
   ** Main Function Object
   */
   function my() {
-
-      svg
-        .attr("width", width)
-        .attr("height", height)
+      canvas = container.selectAll("canvas")
+          .data([1], function(d) { return d; })
+        .enter().append("canvas")
       ;
-
+      svg = container.selectAll("svg")
+          .data([1], function(d) { return d; })
+        .enter().append("svg")
+      ;
       var g = svg.selectAll("g").data([1]);
       g = g.enter().append("g").merge(g);
-      g.attr("transform", "translate("+ margin.left +","+ margin.top +")")
-
       bars = data.barlines.map(function(b) { return b.time[0]; });
-      height = height - margin.top - margin.bottom;
-      width = width - margin.left - margin.right;
 
       domain.x = [0, data.scorelength[0]];
       domain.y = d3.range(
@@ -68,14 +65,15 @@ function NotesBook() {
           , data.maxpitch.b7
         )
       ;
-      scale.voice
-          .domain(data.partnames)
-          .rangeRound([0, height])
-      ;
-      scale.barlines
-          .domain(domain.x)
-          .range([0, width])
-      ;
+      scale.voice.domain(data.partnames);
+      scale.barlines.domain(domain.x);
+
+      size();
+
+      g.attr("transform", "translate("+ margin.left +","+ margin.top +")");
+      height = height - margin.top - margin.bottom;
+      width = width - margin.left - margin.right;
+
       barlinesAxis
           .scale(scale.barlines)
           .tickValues(bars)
@@ -113,68 +111,85 @@ function NotesBook() {
         .enter().append("g")
           .each(function(d) {
               var self = d3.select(this).call(tooltip);
-              canvases
-                  .push({
-                        key: d.key
-                      , canvas: NotesCanvas()
-                          .colorScale(scale.color)
-                          .extremes(display.extremes)
-                          .tooltip(tooltip)
-                          .width(width)
-                          .height(height)
-                          .showReflines(canvases.length === 0)
-                      , selection: self
-                    })
-              ;
-              self
-                  .call(canvases[canvases.length - 1].canvas)
-              ;
+              // canvases
+              //     .push({
+              //           key: d.key
+              //         , canvas: NotesCanvas()
+              //             .extremes(display.extremes)
+              //             .tooltip(tooltip)
+              //             .width(width)
+              //             .height(height)
+              //             .showReflines(canvases.length === 0)
+              //         , selection: self
+              //       })
+              // ;
+              // self
+              //     .call(canvases[canvases.length - 1].canvas)
+              // ;
             })
       ;
+      update();
   } // my() - Main function object
 
   /*
   ** Helper Functions
   */
+  function size() {
+    width = parseInt(container.style("width"));
+    height = parseInt(container.style("height"));
+    scale.voice.rangeRound([0, height]);
+    canvas
+        .attr("width", width)
+        .attr("height", height)
+    ;
+    svg
+        .attr("width", width)
+        .attr("height", height)
+    ;
+    scale.voice.rangeRound([0, height]);
+    scale.barlines.range([0, width]);
+  } // size()
+
   function update() {
       var matched = -1;
-      canvases.forEach(function(c, i) {
-          var transform = 0
-            , h = height
-            , z = display.zoom || domain
-            , hilited = (c.key === display.hilite)
-          ;
-          if(display.hilite) {
-              // only change if this is a match
-              matched = hilited ? i : matched;
-              if(display.separate) {
-                  if(matched !== i) { // we're not the matched one
-                      h = 0;
-                      transform = (matched === -1)
-                        ? 0      // above the yet to be found matched frame,
-                        : height // or below the already found one
-                      ;
-                  }
-              }
-          } else { // if no hilite
-              if(display.separate) {
-                  h = scale.voice.bandwidth();
-                  transform = scale.voice(c.key);
-              }
-          }
-          c.canvas
-              .height(h)
-              .zoom(z)
-              .state(hilited || !display.hilite)
-              .showReflines(display.separate ? (hilited || !display.hilite) : (i === 0))
-              .update()
-          ;
-          c.selection
-            .transition()
-              .attr("transform", "translate(0," + transform + ")")
-          ;
-        })
+      // canvases.forEach(function(c, i) {
+      //     var transform = 0
+      //       , h = height
+      //       , z = display.zoom || domain
+      //       , hilited = (c.key === display.hilite)
+      //     ;
+      //     if(display.hilite) {
+      //         // only change if this is a match
+      //         matched = hilited ? i : matched;
+      //         if(display.separate) {
+      //             if(matched !== i) { // we're not the matched one
+      //                 h = 0;
+      //                 transform = (matched === -1)
+      //                   ? 0      // above the yet to be found matched frame,
+      //                   : height // or below the already found one
+      //                 ;
+      //             }
+      //         }
+      //     } else { // if no hilite
+      //         if(display.separate) {
+      //             h = scale.voice.bandwidth();
+      //             transform = scale.voice(c.key);
+      //         }
+      //     }
+      //     c.canvas
+      //         .height(h)
+      //         .zoom(z)
+      //         .state(hilited || !display.hilite)
+      //         .showReflines(display.separate ? (hilited || !display.hilite) : (i === 0))
+      //         .update()
+      //     ;
+      //     c.selection
+      //       .transition()
+      //         .attr("transform", "translate(0," + transform + ")")
+      //     ;
+      //   })
       ;
+      artist.canvas(canvas.node()).render();
       barlinesAxis
           .scale(scale.barlines)
           .tickValues(bars)
@@ -202,28 +217,12 @@ function NotesBook() {
   /*
   ** API (Getter/Setter) Functions
   */
-  my.colorScale = function(value) {
-      if(arguments.length === 0) return scale.color;
-      scale.color = value;
-
-      return my;
-    } // my.colorScale()
-  ;
-  my.width = function(value) {
-      if(arguments.length === 0) return width;
-
-      width = value;
-
-      return my;
+  my.width = function() {
+      return width;
     } // my.width()
   ;
-  my.height = function(value) {
-      if(arguments.length === 0) return height;
-
-      height = value;
-      scale.voice.rangeRound([0, height]);
-
-      return my;
+  my.height = function() {
+      return height;
     } // my.height()
   ;
   my.full = function(value) {
@@ -300,11 +299,11 @@ function NotesBook() {
       return my;
     } // my.extremes()
   ;
-  my.svg = function (value){
-      if(arguments.length === 0) return svg;
-      svg = value;
+  my.container = function (value){
+      if(arguments.length === 0) return container;
+      container = value;
       return my;
-    } // my.svg()
+    } // my.container()
   ;
   my.data = function (value){
       if(arguments.length === 0) return data;
@@ -312,7 +311,18 @@ function NotesBook() {
       return my;
     } // my.data()
   ;
-
+  my.artist = function (value){
+      if(!arguments.length) return artist;
+      artist = value;
+      return my;
+    } // my.artist()
+  ;
+  my.resize = function () {
+      size();
+      update();
+      return my;
+    } // my.resize();
+  ;
   // This is always the last thing returned
   return my;
 } // NotesBook()
