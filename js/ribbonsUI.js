@@ -33,26 +33,17 @@ function RibbonsUI(){
         form = formEnter.merge(form);
         
         /**
-         * Checkbox
+         * Checkbox for toggling the ribbon.
          */
-        var checkboxContainer = form.select(".ribbon-checkbox");
-        var label = checkboxContainer.selectAll("label").data([1]);
-        var labelEnter = label.enter().append("label");
-
-        labelEnter
-          .append("input")
-            .attr("type", "checkbox")
-            .property("checked", showRibbons)
-            .on("click", function (e){
-                showRibbons = this.checked;
+        checkbox(form, ".ribbon-checkbox", function (_){
+            if(arguments.length){
+                showRibbons = _;
                 dispatch.call("showRibbons", this, showRibbons);
                 my();
-              })
-        ;
-        labelEnter
-          .append("span")
-            .text(" " + labelText)
-        ;
+            } else {
+                return showRibbons;
+            }
+        });
 
         /**
          * Radio Buttons
@@ -86,6 +77,27 @@ function RibbonsUI(){
         ;
 
     } // my() - Main Function Object
+
+    function checkbox(form, className, accessor){
+        var checkboxContainer = form.select(className);
+        var label = checkboxContainer.selectAll("label").data([1]);
+        var labelEnter = label.enter().append("label");
+
+        labelEnter
+          .append("input")
+            .attr("type", "checkbox")
+            .property("checked", accessor())
+            .on("click", function (e){
+                accessor(this.checked);
+              })
+        ;
+        labelEnter
+          .append("span")
+            .text(" " + labelText)
+        ;
+
+    }
+
     /*
     ** API (Getters/Setters)
     */
