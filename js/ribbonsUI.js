@@ -35,7 +35,15 @@ function RibbonsUI(){
         /**
          * Checkbox for toggling the ribbon.
          */
-        checkbox(form, ".ribbon-checkbox");
+        checkbox(form, ".ribbon-checkbox", function (_){
+            if(arguments.length){
+                showRibbons = _;
+                dispatch.call("showRibbons", this, showRibbons);
+                my();
+            } else {
+                return showRibbons;
+            }
+        });
 
         /**
          * Radio Buttons
@@ -70,7 +78,7 @@ function RibbonsUI(){
 
     } // my() - Main Function Object
 
-    function checkbox(form, className){
+    function checkbox(form, className, accessor){
         var checkboxContainer = form.select(className);
         var label = checkboxContainer.selectAll("label").data([1]);
         var labelEnter = label.enter().append("label");
@@ -78,11 +86,9 @@ function RibbonsUI(){
         labelEnter
           .append("input")
             .attr("type", "checkbox")
-            .property("checked", showRibbons)
+            .property("checked", accessor())
             .on("click", function (e){
-                showRibbons = this.checked;
-                dispatch.call("showRibbons", this, showRibbons);
-                my();
+                accessor(this.checked);
               })
         ;
         labelEnter
