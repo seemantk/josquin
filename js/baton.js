@@ -142,8 +142,17 @@ function chartify(data) {
 
 function setupSVGExport() {
     exportUI.on("click", function (){
-        console.log("here");
-    });
+        var svg = notesBook.svg().node();
+        var svgAsXML = (new XMLSerializer).serializeToString(svg);
+        var dataURL = "data:image/svg+xml," + encodeURIComponent(svgAsXML);
+
+        var dl = document.createElement("a");
+        document.body.appendChild(dl); // This line makes it work in Firefox.
+        dl.setAttribute("href", dataURL);
+        dl.setAttribute("download", "josquin-view.svg");
+        dl.click();
+      })
+    ;
 }
 
 // Capture URL query param
