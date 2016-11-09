@@ -12,6 +12,7 @@ var width = 960
       .div(divMeta.select("#ribbons-ui"))
   , colorLegend = ColorLegend()
       .div(divMeta.select("#legend"))
+  , exportUI = divMeta.select("#export-ui")
   , colorScale = d3.scaleOrdinal(d3.schemeCategory10)
   , lifeSize = 10 // screen width of 1 duration
   , lifeScale = d3.scaleLinear()
@@ -135,7 +136,15 @@ function chartify(data) {
     ;
     titles.text(function(d) { return d.split('_').join(' '); });
 
+    setupSVGExport();
+
 } // chartify()
+
+function setupSVGExport() {
+    exportUI.on("click", function (){
+        console.log("here");
+    });
+}
 
 // Capture URL query param
 function getQueryVariables() {

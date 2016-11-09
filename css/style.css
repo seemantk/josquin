@@ -98,6 +98,6 @@ ul.fab {
 li {
     flex: 0 0 auto;
 }
-#ribbons-ui {
+#ribbons-ui, #export-ui {
   margin-top: 10px;
 }
