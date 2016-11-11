@@ -22,28 +22,29 @@ function RibbonsUI(){
     ** Main Function Object
     */
     function my() {
-        var toolbar = div.selectAll(".fixed-action-button")
-            .data([toggle], function(d) { return d.label; })
+        var cbform = div.select(".panel-body").selectAll("div").data([1])
+          , cbformEnter = cbform.enter().append("div")
+                .attr("class", "ribbon-checkbox checkbox")
         ;
-        toolbar = toolbar.enter()
-          .append("div")
-            .attr("class", "fixed-action-button")
+        cbform = cbformEnter.merge(cbform);
+
+        /**
+         * Checkbox
+         */
+        var label = cbform.selectAll("label").data([1])
+              .enter().append("label")
         ;
-        toolbar
-          .append("button")
-            .attr("class", "mdl-button mdl-button--fab mdl-button--primary")
-            .on("click", function(d) {
-                var self = this;
-                var vis = toolbar.select("ul").style("visibility");
-                // Toggle the flyout
-                toolbar.select("ul")
-                    .style("visibility", vis == "visible" ? "hidden" : "visible")
-                ;
-                dispatch.call(d.callback, self, d.label);
+        label
+            .attr("class", "btn btn-default btn-sm")
+          .append("input")
+            .attr("type", "checkbox")
+            .property("checked", showRibbons)
+            .on("change", function (e){
+                showRibbons = this.checked;
+                dispatch.call("showRibbons", this, showRibbons);
+                label.classed("active", showRibbons);
+                my();
               })
-          .append("i")
-            .attr("class", "material-icons")
-            .text(function(d) { return d.icon; })
         ;
         label
           .append("span")

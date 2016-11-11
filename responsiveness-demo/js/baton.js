@@ -4,6 +4,7 @@ var width = 960
   , canvas = NotesCanvas()
       .svg(d3.select("body").append("svg")) // on the shadow DOM
   , notesNav = NotesNav()
+  //     .svg(d3.select("#nav").append("svg"))
   // , notesBook = NotesBook()
   //     .svg(d3.select("#notes"))
   , combineSeparateUI = CombineSeparateUI()
@@ -11,9 +12,9 @@ var width = 960
   , extremeNotesUI = ExtremeNotesUI()
       .div(d3.select("#extreme-notes-ui"))
   , ribbonsUI = RibbonsUI()
-      .div(divMeta.select("#ribbons-ui"))
+      .div(d3.select("#ribbons-ui"))
   , colorLegend = ColorLegend()
-      .div(divMeta.select("#legend"))
+      .div(d3.select("div#legend"))
   , colorScale = d3.scaleOrdinal(d3.schemeCategory10)
 ;
 var defaultWork = "Jos2721-La_Bernardina"
@@ -59,36 +60,24 @@ function chartify(data) {
     canvas.data(data)(); // draw things in the shadow DOM.
     var vb = canvas.viewbox();
     vb[0] = vb[1] = 0;
-    var w = Math.abs(vb[2] - vb[0])
-      , h = Math.abs(vb[3] - vb[1])
-      , book = d3.select("#notes").append("svg")
-                .attr("preserveAspectRatio", "none")
+
+    var book = d3.select("#notes")
+              .append("svg")
+                .attr("preserveAspectRatio", "xMinYMax slice")
       , nav = d3.select("#nav").append("svg")
                 .attr("preserveAspectRatio", "none")
     ;
-    function sizeit(sheet) {
-        return sheet
-            .attr("viewBox", vb.join(' '))
-            .attr("width", w)
-            .attr("height", h)
-        ;
-    } // sizeit()
-
     [book,nav].forEach(function(sheet) {
-        sizeit(sheet)
+        sheet
+            .attr("viewBox", vb.join(' '))
             .style("width", "100%")
             .style("height", "100%")
         ;
-        sizeit(sheet.append("svg"))
-            .attr("preserveAspectRatio", "xMinYMid slice")
-          .selectAll("use")
+        sheet.selectAll("use")
             .data(["score", "ribbon"])
           .enter().append("use")
             .attr("xlink:href", function(d) { return  "#" + d; })
-            .attr("x", 0)
-            .attr("y", 0)
-            .attr("width", w)
-            .attr("height", h)
+            .style("pointer-events", "none")
         ;
       }) // forEach
     ;
@@ -98,9 +87,9 @@ function chartify(data) {
             , "separate"
             , "selected"
             , "extremes"
-            , "toggleRibbons"
+            , "showRibbons"
             , "ribbonMode"
-            , "toggleNotes"
+            , "notes"
           )
     ;
     notesNav
@@ -150,8 +139,11 @@ function chartify(data) {
 
     signal
         .on("zoom", function(extent) {
-            var w = extent[1] - extent[0];
-            book.attr("viewBox", [extent[0], vb[1], w, vb[3]].join(' '))
+            book
+                .attr(
+                      "viewBox"
+                    , [extent[0], vb[1], vb[2], vb[3]].join(' ')
+                  )
           })
         // .on("hilite",   notesBook.hilite)
         // .on("separate", notesBook.separate)
@@ -160,8 +152,6 @@ function chartify(data) {
         // .on("ribbonMode", notesBook.ribbonMode)
         // .on("notes", notesBook.showNotes)
     ;
-    titles.text(function(d) { return d.split('_').join(' '); });
-
 } // chartify()
 
 // Calculate the extent of a range

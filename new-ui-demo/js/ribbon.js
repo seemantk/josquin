@@ -1,6 +1,5 @@
 function Ribbon() {
-    /* Private Variables */
-    var svg
+    var g
       , data // The original notes data
       , ribbonData // The computed data for the ribbon
       , interval = 12 // The interval size for the sliding window, in units of
@@ -11,37 +10,69 @@ function Ribbon() {
       , scale // Scale data passed down from notescanvas
       , domain // Domain data passed down from notescanvas
       , area = d3.area()
-          .x(function (d){ return x(d.x); })
-          .y0(function (d){ return y(d.y0); })
-          .y1(function (d){ return y(d.y1); })
+          .x(function (d){ return scale.x(d.x); })
+          .y0(function (d){ return scale.yLinear(d.y0); })
+          .y1(function (d){ return scale.yLinear(d.y1); })
           .curve(d3.curveBasis)
       , ribbonData
       , ribbonDataStale = true
-      , modes = {}
+      , show = true
+      , mode = Ribbon.STANDARD_DEVIATION
     ;
 
 
-    /*
-    ** Main Function Object
-    */
     function my(){
-        var ribbon = svg.selectAll("g")
-                .data(d3.entries(modes), function(d) { return d.key; })
+      if(data && domain && scale){
+
+        if(ribbonDataStale & show){
+          ribbonData = computeRibbon();
+          ribbonDataStale = false;
+        }
+
+        var path = g.selectAll("path").data(show? [ribbonData] : [])
+        path.exit().remove()
+        path.enter().append("path").merge(path)
+            .attr("class", "ribbon")
+            .style("color", function(d) {
+                return scale.color(data.key);
+              })
+            .attr("d", area)
         ;
-        ribbon.exit().remove();
-        ribbon
-          .enter().append("g")
-            .attr("class", function(d) { return d.key.toLowerCase(); })
-          .each(function(d) {
-              var path = d3.select(this).selectAll("path")
-                  .data([d])
+      }
+    }
+
+    function computeRibbon(){
+      if(mode === Ribbon.STANDARD_DEVIATION){
+        return computeWindowedStandardDeviation();
+      } else if(mode === Ribbon.ATTACK_DENSITY){
+        return computeAttackDensity();
+      }
+    }
+
+    function computeWindowedStandardDeviation(){
+
+      // For steps in which there are no notes in the interval,
+      // An empty interval at the previous average is used.
+      var previousMean = data.value[0].pitch;
+
+      return d3.range(domain.x[0], domain.x[1], step)
+        .map(function (x){
+
+          // This is a "windowed" computation, so we need to look
+          // at the notes in the window of width `interval`, centered on `x`.
+          var notesInWindow = data.value
+            .filter(function(d){
+
+              // Consider the interval to be centered on the x value.
+              var windowStart = x - interval / 2
+                , windowEnd   = x + interval / 2
+                , noteStart = d.time
+                , noteEnd   = d.time + d.duration
               ;
-              return;
-              path
-                .enter().append("path")
-                .merge(path)
-                    .attr("d", function(e) { return area(e.value(d.value)); })
-              ;
+
+              // Consider a note to be "inside the window"
+              // if any part of it falls inside the window.
+              return (noteStart < windowEnd) && (noteEnd > windowStart);
             })
             .map(function (d){ return d.pitch; })
           ;
@@ -168,14 +199,14 @@ function Ribbon() {
             , y0: mean - density
           };
         });
-    } // modes.ATTACK_DENSITY()
+    }
 
-    my.svg = function(value) {
+    my.g = function(value) {
         if(!arguments.length)
-            return svg;
-        svg = value;
+            return g;
+        g = value;
         return my;
-      } // my.svg()
+      } // my.g()
     ;
     my.data = function(value) {
         if(!arguments.length)
@@ -209,6 +240,29 @@ function Ribbon() {
         return my;
       } // my.bandwidth()
     ;
+    my.scale = function(value) {
+        if(!arguments.length)
+            return scale;
+        scale = value;
+        ribbonDataStale = true;
+        return my;
+      } // my.scale()
+    ;
+    my.domain = function(value) {
+        if(!arguments.length)
+            return domain;
+        domain = value;
+        ribbonDataStale = true;
+        return my;
+      } // my.domain()
+    ;
+    my.show = function(value) {
+        if(!arguments.length)
+            return show;
+        show = value;
+        return my;
+      } // my.show()
+    ;
     my.mode = function(value) {
         if(!arguments.length)
             return mode;
@@ -217,22 +271,8 @@ function Ribbon() {
         return my;
       } // my.mode()
     ;
-    my.x = function(_) {
-        if(!arguments.length) return x;
-        x = _;
-        return my;
-      } // my.x()
-    ;
-    my.y = function(_) {
-        if(!arguments.length) return y;
-        y = _;
-        return my;
-      } // my.y()
-    ;
-
-    // This is ALWAYS the last thing returned
     return my;
-} // Ribbon()
+}
 
 // Expose constants for use in UI elements.
 Ribbon.STANDARD_DEVIATION = "STANDARD DEVIATION";
