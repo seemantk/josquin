@@ -12,6 +12,7 @@ var width = 960
       .div(divMeta.select("#ribbons-ui"))
   , colorLegend = ColorLegend()
       .div(divMeta.select("#legend"))
+  , exportUI = divMeta.select("#export-ui")
   , colorScale = d3.scaleOrdinal(d3.schemeCategory10)
   , lifeSize = 10 // screen width of 1 duration
   , lifeScale = d3.scaleLinear()
@@ -135,7 +136,24 @@ function chartify(data) {
     ;
     titles.text(function(d) { return d.split('_').join(' '); });
 
+    setupSVGExport();
+
 } // chartify()
+
+function setupSVGExport() {
+    exportUI.on("click", function (){
+        var svg = notesBook.svg().node();
+        var svgAsXML = (new XMLSerializer).serializeToString(svg);
+        var dataURL = "data:image/svg+xml," + encodeURIComponent(svgAsXML);
+
+        var dl = document.createElement("a");
+        document.body.appendChild(dl); // This line makes it work in Firefox.
+        dl.setAttribute("href", dataURL);
+        dl.setAttribute("download", "josquin-view.svg");
+        dl.click();
+      })
+    ;
+}
 
 // Capture URL query param
 function getQueryVariables() {
