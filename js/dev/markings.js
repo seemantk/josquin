@@ -13,7 +13,6 @@ function Markings() {
           .domain([32, 28, 24])
           .range(["G", "C4", "F"])
     , reflinesAxis = d3.axisLeft()
-          .tickValues(reflinesScale.domain())
           .tickFormat(reflinesScale)
     , barlines, barlinesScale, barlinesAxis = d3.axisBottom()
     , barLabels, barLabelCount = 15
@@ -66,6 +65,12 @@ function Markings() {
       mensurations = mensurations || svg
         .append("g")
           .attr("class", "mensurations haxis")
+      ;
+      // Reference lines (the three horizontal pitch lines)
+      reflinesAxis
+          .tickValues(reflinesScale.domain()
+                  .filter(function(d) { return isBetween(d, y.domain()); })
+            )
       ;
       reflines = svg.selectAll(".reflines")
           .data(voices.domain(), function(d) { return d; })
@@ -134,10 +139,6 @@ function Markings() {
       ;
   } // renderBarlines()
 
-  function isBetween(num, extent) {
-      return (num >= extent[0]) && (num <= extent[1]);
-  } // isBetween()
-
   function renderMensurations(selection) {
       mensurationsAxis
           .scale(barlinesScale.clamp(true))
@@ -160,11 +161,11 @@ function Markings() {
       ;
   } // renderMensurations()
 
-  function renderReflines() {
+  function renderReflines(selection) {
       reflinesAxis
           .tickSize(x.range()[0] - x.range()[1])
       ;
-      reflines
+      selection
         .each(function(d, i) {
             var self = d3.select(this)
               , myscale = separate
@@ -187,6 +188,10 @@ function Markings() {
       ;
   } // renderReflines
 
+  function isBetween(num, arr) {
+      var extent = d3.extent(arr);
+      return (num >= extent[0]) && (num <= extent[1]);
+  } // isBetween()
 
   /*
   ** API - Getter/Setter Methods
@@ -238,7 +243,7 @@ function Markings() {
       if(!arguments.length) return separate;
 
       separate = _;
-      renderReflines();
+      reflines.call(renderReflines);
 
       return my;
     } // my.separate()
