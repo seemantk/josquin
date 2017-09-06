@@ -16,7 +16,7 @@ function NotesBook() {
     , ribbon = Ribbon()
     , markings = Markings()
     , lifeSize = 10 // default height and width of notes
-    , scaleup = function(d) { return d * lifeSize; }
+    , scaleup = function (d){ return d * lifeSize; }
     , dispatch
     , rawAccessors = {
           timeTransform: function (d){
@@ -28,11 +28,20 @@ function NotesBook() {
         , duration: function (d){
               return +d.duration[0];
           }
+        , scoreLength: function (){
+              return data.scorelength[0];
+          }
       }
-    , measureScalingAccessors 
+    , measureScalingAccessors
     , startTimeAccessor = rawAccessors.startTime
     , durationAccessor = rawAccessors.duration
     , timeTransform = rawAccessors.timeTransform
+    , zoom
+    , show = {
+            extremes: false
+          , notes: true
+          , ribbons: false
+        }
   ;
 
   /*
@@ -41,17 +50,11 @@ function NotesBook() {
   function my() {
       if(!data) return;
 
-      x.domain([0, data.scorelength[0]]);
-      y.domain(d3.range(data.minpitch.b7, data.maxpitch.b7 + 1))
-          .padding(0.2)
-      ;
-      x.range(x.domain().map(scaleup));
-      y.range(d3.extent(y.domain()).reverse().map(scaleup));
-
-      width   = Math.abs(x.range()[1] - x.range()[0]);
-      height  = Math.abs(y.range()[1] - y.range()[0]);
-      fullheight = height * data.partcount;
-      viewbox = [x.range()[0], y.range()[1], width, height];
+      setXScale();
+      reWidthFromData();
+      setYScale();
+      reHeightFromData();
+      updateViewbox();
 
       var sw = parseFloat(svg.style("width"))
         , sh = parseFloat(svg.style("height"))
@@ -68,8 +71,19 @@ function NotesBook() {
       rulers
           .call(markings)
       ;
+
+      // Default to being zoomed out completely.
+      var reticleViewbox = [0, 0, width, height];
+
+      // If a zoom has been set in response to brushing,
+      // set the viewBox accordingly.
+      if (zoom) {
+        reticleViewbox[0] = zoom[0];
+        reticleViewbox[2] = Math.abs(zoom[1] - zoom[0]);
+      }
+
       reticle
-          .attr("viewBox", [0, 0, width, height].join(' '))
+          .attr("viewBox", reticleViewbox.join(' '))
         // Make room for the markings around
           .attr("width", (100 - percents.left - percents.right) + "%")
           .attr("height", (100 - percents.top - percents.bottom) + "%")
@@ -77,7 +91,7 @@ function NotesBook() {
       voices
           .attr("width", width)
           .attr("height", height)
-          .attr("viewBox", [0, 0, width, height].join(' '))
+          .attr("viewBox", reticleViewbox.join(' '))
       ;
       var voice = voices.selectAll(".voice")
           .data(data.partdata, function(d) { return d.partindex; })
@@ -114,6 +128,8 @@ function NotesBook() {
               ;
             })
       ;
+      toggleNotes(); // preserve show/hide of notes
+      extremify(); // preserve state of highlighting extreme notes
       window.onresize = function(event) { markings.calibrate(); };
   } // my() - Main function object
 
@@ -148,6 +164,53 @@ function NotesBook() {
           .attr("preserveAspectRatio", "none")
       ;
   } // initialize_SVG()
+
+  function setXScale() {
+    if(!data) return;
+
+    // TODO take into account the zoom state here.
+    x.domain([0, rawAccessors.scoreLength()]);
+    x.range(x.domain().map(scaleup));
+  } // setXScale()
+
+  function setYScale() {
+      if(!data) return;
+      y.domain(d3.range(data.minpitch.b7, data.maxpitch.b7 + 1))
+          .padding(0.2)
+      ;
+      y.range(d3.extent(y.domain()).reverse().map(scaleup));
+  } // setYScale()
+
+  function reWidthFromData() {
+      if(!data) return;
+      width   = Math.abs(x.range()[1] - x.range()[0]);
+  } // reWidthFromData()
+
+  function reHeightFromData() {
+      if(!data) return;
+      height  = Math.abs(y.range()[1] - y.range()[0]);
+      fullheight = height * data.partcount;
+  } // reHeightFromData()
+
+  function updateViewbox() {
+      viewbox = [x.range()[0], y.range()[1], width, height];
+      reticle
+        .transition(d3.transition())
+          .attr("viewBox", [0, 0, width, height].join(' '))
+      ;
+  } // updateViewbox()
+
+  function extremify() {
+      voices.selectAll(".extreme-plain")
+          .classed("extreme", show.extremes)
+      ;
+  } // extremify()
+
+  function toggleNotes() {
+      voices.selectAll(".notes")
+          .style("display", show.notes === "inline" ? "none" : "inline")
+      ;
+  } // toggleNotes()
 
   /*
   ** API (Getter/Setter) Functions
@@ -191,25 +254,20 @@ function NotesBook() {
       return my;
     } // my.hilite()
   ;
-  my.extremes = function() {
-      var xtrms = voices.selectAll(".extreme").empty();
+  my.extremes = function(_) {
+      if(!arguments.length) return show.extremes;
 
-      // TODO move this into render function, introduce variable.
-      voices.selectAll(".extreme-plain")
-          .classed("extreme", xtrms)
-      ;
+      show.extremes = voices.selectAll(".extreme").empty();
+
+      extremify();
+      return my;
     } // my.extremes()
   ;
+
+  // Setter only (never used as getter).
   my.zoom = function(_) {
-      var vb = reticle.attr("viewBox").split(' ');
-      if(!arguments.length) return vb;
-
-      // TODO move this into render function.
-      vb[0] = _[0];
-      vb[2] = Math.abs(_[1] - _[0]);
-      markings.xDomain([vb[0], vb[0] + vb[2]].map(x.invert));
-      reticle.attr("viewBox", vb.join(' ') );
-
+      zoom = _
+      markings.xDomain(zoom.map(x.invert));
       return my;
     } // my.zoom()
   ;
@@ -230,12 +288,9 @@ function NotesBook() {
     } // my.separate()
   ;
   my.notes = function() { // toggles the notes on/off
-
-      // TODO move this into render function, introduce variable.
-      var music = voices.selectAll(".notes")
-        , vis = music.style("display")
-      ;
-      music.style("display", vis === "inline" ? "none" : "inline");
+      show.notes = voices.selectAll(".notes").style("display");
+      toggleNotes()
+      return my;
     } // my.notes()
   ;
   my.ribbons = function(arg) {
